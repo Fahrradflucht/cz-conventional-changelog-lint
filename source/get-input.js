@@ -242,8 +242,6 @@ function getPrompt(type, rules, settings = {}, results = {}) {
 		emptyRule[1][1] === 'never' :
 		false;
 
-	const mayBeEmpty = !mayNotBeEmpty;
-
 	if (mustBeEmpty) {
 		prompt.removeAllListeners('keypress');
 		prompt.removeAllListeners('client_prompt_submit');
@@ -314,31 +312,22 @@ function getPrompt(type, rules, settings = {}, results = {}) {
 				});
 		}
 
-		if (mayBeEmpty) {
-			// Add an easy exit command
-			prompt
-				.command(':skip')
-				.description('Skip the input if possible.')
-				.action(() => {
-					prompt.removeAllListeners();
-					prompt.ui.redraw.done();
-					resolve('');
-				});
-		}
-
 		// Handle empty input
 		const onSubmit = input => {
 			if (input.length > 0) {
 				return;
 			}
 
+			// Submit empty input if premitted
+			if (!mayNotBeEmpty) {
+				prompt.removeAllListeners();
+				prompt.ui.redraw.done();
+				resolve('');
+			}
+
 			// Show help if enum is defined and input may not be empty
 			if (mayNotBeEmpty) {
 				prompt.ui.log(chalk.yellow(`⚠ ${chalk.bold(type)} may not be empty.`));
-			}
-
-			if (mayBeEmpty) {
-				prompt.ui.log(chalk.blue(`ℹ Enter ${chalk.bold(':skip')} to omit ${chalk.bold(type)}.`));
 			}
 
 			if (enumRule) {
